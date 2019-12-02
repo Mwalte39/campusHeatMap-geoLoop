@@ -1,16 +1,29 @@
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <div id="mapid_{{ctrl.panel.id}}" class="mapcontainer {{ctrl.saturationClass}}" ng-style="{height: ctrl.height}"></div>
 
 <div class='map-overlay top'>
     <div class='map-overlay-inner'>
         <label id="map_{{ctrl.panel.id}}_date"></label>
         <input id='map_{{ctrl.panel.id}}_slider' type='range' />
+        <input id='map_value' type="hidden" value="{{ctrl.panel.id}}">
+        <input id='map_{{ctrl.panel.id}}_pause'type="button" value="Pause" onclick="playPause()">
+
+        <script>
+            function playPause(){
+                if(document.getElementById("map_" + document.getElementById('map_value').value + "_pause").value == "Play"){
+                    document.getElementById("map_" + document.getElementById('map_value').value + "_pause").value = "Pause";
+                }else if(document.getElementById("map_" + document.getElementById('map_value').value + "_pause").value == "Pause"){
+                    document.getElementById("map_" + document.getElementById('map_value').value + "_pause").value = "Play";
+                }
+            }
+        </script>
     </div>
-    <!--
-    <div class='map-overlay-inner'>
+    
+    <!-- <div class='map-overlay-inner'>
         <div id='map_{{ctrl.panel.id}}_legend' class='legend'>
             <div class='bar'></div>
             <div class="legend_text"></div>
         </div>
-    </div>
-    -->
+    </div> -->
+   
 </div>

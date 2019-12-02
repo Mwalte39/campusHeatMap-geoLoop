@@ -127,7 +127,7 @@ export default class GeoLoop {
 
       for (let iStop = 0; iStop <= nStops; iStop += 1) {
         const stop = minInput + ((iStop / nStops) * (maxInput - minInput));
-        colorStops.push([stop, this.ctrl.panel.colorInterpolator(stop)]);
+        colorStops.push([stop, this.ctrl.panel.colorInterpolator(stop, iStop)]);
       }
 
       // console.log('color stops: ', colorStops);
@@ -202,7 +202,7 @@ export default class GeoLoop {
 
     this.animation = setInterval(() => {
       this.stepFrame();
-    }, 200);
+    }, 500);
   }
 
   stopAnimation() {
@@ -218,13 +218,31 @@ export default class GeoLoop {
       // console.log('skipping animation: no frames');
       return;
     }
-    const oldFrame = 'f-' + this.frames[this.currentFrameIndex];
-    this.currentFrameIndex += 1;
-    if (this.currentFrameIndex >= this.frames.length) {
-      this.currentFrameIndex = 0;
-    }
-    const newFrame = 'f-' + this.frames[this.currentFrameIndex];
 
+    var playing = d3.select('#map_' + this.ctrl.panel.id + '_pause').node().value == "Pause";
+
+    d3.select('#map_' + this.ctrl.panel.id + '_slider').on("change", this.updatePosition(playing));
+
+    if(playing){
+      this.updateStepper();
+    }
+
+  }
+
+  updatePosition(playing){
+    if(this.currentFrameIndex != d3.select('#map_' + this.ctrl.panel.id + '_slider').node().value){
+      var oldFrame = 'f-' + this.frames[this.currentFrameIndex];
+      this.currentFrameIndex += (d3.select('#map_' + this.ctrl.panel.id + '_slider').node().value - this.currentFrameIndex);
+      if(playing){
+        this.currentFrameIndex --;
+      }
+      this.updateMapColors(oldFrame);
+    }
+  }
+
+  updateMapColors(oldFrame){
+    const newFrame = 'f-' + this.frames[this.currentFrameIndex];
+    
     const opacitySelectors = {
       'point': 'circle-opacity',
       'polygon': 'fill-opacity',
@@ -234,14 +252,24 @@ export default class GeoLoop {
 
     this.map.setPaintProperty(newFrame, selector, 1);
     this.map.setPaintProperty(oldFrame, selector, 0);
+
+    
     const tstamp = this.frames[this.currentFrameIndex] / 1e3;
     const timeStr = moment.unix(tstamp).format('YYYY-MM-DD HH:mm:ss');
-    // console.log('time is ', timeStr);
-
     // set time string in legend
     d3.select('#map_' + this.ctrl.panel.id + '_date').text(timeStr);
     // set slider position to indicate time-location
     d3.select('#map_' + this.ctrl.panel.id + '_slider').property('value', this.currentFrameIndex);
+  }
+
+  updateStepper() {
+    const oldFrame = 'f-' + this.frames[this.currentFrameIndex];
+    this.currentFrameIndex += 1;
+    if (this.currentFrameIndex >= this.frames.length || this.currentFrameIndex < 0) {
+      this.currentFrameIndex = 0;
+    }
+    this.updateMapColors(oldFrame);
+    // console.log('time is ', timeStr);
   }
 
   resize() {

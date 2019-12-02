@@ -177,7 +177,7 @@ System.register(['moment', './libs/mapbox-gl', './libs/d3'], function (_export, 
 
               for (var iStop = 0; iStop <= nStops; iStop += 1) {
                 var stop = _minInput + iStop / nStops * (_maxInput - _minInput);
-                colorStops.push([stop, this.ctrl.panel.colorInterpolator(stop)]);
+                colorStops.push([stop, this.ctrl.panel.colorInterpolator(stop, iStop)]);
               }
 
               // console.log('color stops: ', colorStops);
@@ -252,7 +252,7 @@ System.register(['moment', './libs/mapbox-gl', './libs/d3'], function (_export, 
 
             this.animation = setInterval(function () {
               _this4.stepFrame();
-            }, 200);
+            }, 500);
           }
         }, {
           key: 'stopAnimation',
@@ -270,11 +270,30 @@ System.register(['moment', './libs/mapbox-gl', './libs/d3'], function (_export, 
               // console.log('skipping animation: no frames');
               return;
             }
-            var oldFrame = 'f-' + this.frames[this.currentFrameIndex];
-            this.currentFrameIndex += 1;
-            if (this.currentFrameIndex >= this.frames.length) {
-              this.currentFrameIndex = 0;
+
+            var playing = d3.select('#map_' + this.ctrl.panel.id + '_pause').node().value == "Pause";
+
+            d3.select('#map_' + this.ctrl.panel.id + '_slider').on("change", this.updatePosition(playing));
+
+            if (playing) {
+              this.updateStepper();
             }
+          }
+        }, {
+          key: 'updatePosition',
+          value: function updatePosition(playing) {
+            if (this.currentFrameIndex != d3.select('#map_' + this.ctrl.panel.id + '_slider').node().value) {
+              var oldFrame = 'f-' + this.frames[this.currentFrameIndex];
+              this.currentFrameIndex += d3.select('#map_' + this.ctrl.panel.id + '_slider').node().value - this.currentFrameIndex;
+              if (playing) {
+                this.currentFrameIndex--;
+              }
+              this.updateMapColors(oldFrame);
+            }
+          }
+        }, {
+          key: 'updateMapColors',
+          value: function updateMapColors(oldFrame) {
             var newFrame = 'f-' + this.frames[this.currentFrameIndex];
 
             var opacitySelectors = {
@@ -286,14 +305,24 @@ System.register(['moment', './libs/mapbox-gl', './libs/d3'], function (_export, 
 
             this.map.setPaintProperty(newFrame, selector, 1);
             this.map.setPaintProperty(oldFrame, selector, 0);
+
             var tstamp = this.frames[this.currentFrameIndex] / 1e3;
             var timeStr = moment.unix(tstamp).format('YYYY-MM-DD HH:mm:ss');
-            // console.log('time is ', timeStr);
-
             // set time string in legend
             d3.select('#map_' + this.ctrl.panel.id + '_date').text(timeStr);
             // set slider position to indicate time-location
             d3.select('#map_' + this.ctrl.panel.id + '_slider').property('value', this.currentFrameIndex);
+          }
+        }, {
+          key: 'updateStepper',
+          value: function updateStepper() {
+            var oldFrame = 'f-' + this.frames[this.currentFrameIndex];
+            this.currentFrameIndex += 1;
+            if (this.currentFrameIndex >= this.frames.length || this.currentFrameIndex < 0) {
+              this.currentFrameIndex = 0;
+            }
+            this.updateMapColors(oldFrame);
+            // console.log('time is ', timeStr);
           }
         }, {
           key: 'resize',

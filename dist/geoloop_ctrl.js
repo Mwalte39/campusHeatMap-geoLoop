@@ -310,6 +310,7 @@ System.register(['app/plugins/sdk', 'app/core/time_series2', 'app/core/utils/kbn
                   _this3.geo = res;
                   _this3.updateGeoDataFeatures();
                   _this3.render();
+                  console.log(_this3.geo);
                 }
               }).fail(function (res) {
                 console.log('error in ajax: ', res);
@@ -488,9 +489,10 @@ System.register(['app/plugins/sdk', 'app/core/time_series2', 'app/core/utils/kbn
               colorInterpolator = d3.scaleSequential().domain(inputRange).interpolator(theRamp);
             }
 
-            this.panel.colorInterpolator = function (value) {
+            this.panel.colorInterpolator = function (value, iteratorVal) {
+              var colorArr = ['#008000', '#277f00', '#397e00', '#487d00', '#537c00', '#5e7b00', '#697900', '#727800', '#7b7600', '#847400', '#8c7200', '#957000', '#9d6d00', '#a56a00', '#ad6700', '#b46400', '#bc6000', '#c45c00', '#cb5700', '#d25200', '#da4c00', '#e14400', '#e93b00', '#f03000', '#f82100', '#ff0000'];
               var scaleColor = colorInterpolator(value);
-              var color = csscolorparser.parseCSSColor(scaleColor);
+              var color = csscolorparser.parseCSSColor(colorArr[iteratorVal]);
               var opacity = _.clamp(_.defaultTo(_this5.panel.colorRamp.opacity, 0.5), 0.0, 1.0);
               return 'rgba(' + color[0] + ',' + color[1] + ',' + color[2] + ',' + opacity + ')';
             };
